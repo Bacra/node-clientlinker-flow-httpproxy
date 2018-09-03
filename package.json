@@ -1,0 +1,49 @@
+{
+  "name": "clientlinker-flow-httpproxy",
+  "version": "1.0.0",
+  "description": "Httpproxy flow for clientlinker",
+  "main": "index.js",
+  "scripts": {
+    "prepublish": "npm ls",
+    "lint": "eslint .",
+    "test": "cross-env DEBUG=clientlinker-flow-httpproxy* mocha test/test_*",
+    "test-cov": "istanbul cover _mocha -- test/test_* --reporter dot",
+    "test-travis": "istanbul cover _mocha --report lcovonly -- test/test_* --reporter dot"
+  },
+  "keywords": [
+    "clientlinker",
+    "flow",
+    "httpproxy"
+  ],
+  "author": "Bacra Woo<bacra.woo@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "debug": "^3.1.0",
+    "depd": "^1.1.2",
+    "lodash": "^4.17.10",
+    "raw-body": "^2.3.3",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "clientlinker": "^7.0.1",
+    "clientlinker-flow-confighandler": "^1.0.1",
+    "clientlinker-flow-confighandler-test": "^1.0.1",
+    "cross-env": "^5.2.0",
+    "eslint": "^5.5.0",
+    "eslint-config-brcjs": "^0.2.0",
+    "expect.js": "^0.3.1",
+    "express": "^4.16.3",
+    "istanbul": "^0.4.5",
+    "mkdirp": "^0.5.1",
+    "mocha": "^5.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Bacra/node-clientlinker-flow-httpproxy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Bacra/node-clientlinker-flow-httpproxy/issues"
+  },
+  "homepage": "https://github.com/Bacra/node-clientlinker-flow-httpproxy"
+}
