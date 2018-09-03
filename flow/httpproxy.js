@@ -152,6 +152,8 @@ function getRequestParams(runtime, body)
 			|| process.env.http_proxy;
 
 	var url = appendUrl(options.httpproxy, 'action='+runtime.action);
+	body = json.stringify(body);
+	body.CONST_VARS = json.CONST_VARS;
 
 	var bodystr = JSON.stringify(body, null, '\t');
 	debug('request url:%s', url);
