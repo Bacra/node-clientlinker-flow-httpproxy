@@ -76,7 +76,6 @@ function initSvrLinker(options)
 	var linker = initLinker(options);
 
 	return {
-		svr: svr,
 		linker: linker,
 		start: function(callback)
 		{
