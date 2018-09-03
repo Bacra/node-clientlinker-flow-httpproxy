@@ -26,7 +26,7 @@
     "request": "^2.88.0"
   },
   "devDependencies": {
-    "clientlinker": "^7.0.1",
+    "clientlinker": "^7.0.2",
     "clientlinker-flow-confighandler": "^1.0.1",
     "clientlinker-flow-confighandler-test": "^1.0.1",
     "cross-env": "^5.2.0",

@@ -44,17 +44,6 @@ function initLinker(options)
 				linker.flow('confighandler', confighandlerFlow);
 				break;
 
-			case 'custom':
-				linker.flow('custom', function(flow)
-				{
-					flow.register('custom', function(runtime, callback)
-					{
-						expect(runtime.env.source).to.be('httpproxy');
-						return callback.next();
-					});
-				});
-				break;
-
 			default:
 				debug('undefined flow: %s', name);
 		}
@@ -71,6 +60,14 @@ function initSvrLinker(options)
 	options.flows = ['custom', 'confighandler', 'httpproxy'];
 	options.clients || (options.clients = {});
 	options.clients.client_svr_noflows = {flows: []};
+	options.customFlows =
+	{
+		custom: function(runtime, callback)
+		{
+			expect(runtime.env.source).to.be('httpproxy');
+			return callback.next();
+		}
+	};
 
 	var svr;
 	var linker = initLinker(options);
