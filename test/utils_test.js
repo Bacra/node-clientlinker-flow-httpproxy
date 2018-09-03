@@ -44,6 +44,9 @@ function initLinker(options)
 				linker.flow('confighandler', confighandlerFlow);
 				break;
 
+			case 'custom':
+				break;
+
 			default:
 				debug('undefined flow: %s', name);
 		}
