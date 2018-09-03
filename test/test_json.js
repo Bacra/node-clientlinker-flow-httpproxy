@@ -33,28 +33,25 @@ describe('#json', function()
 	{
 		var data = {
 			"result": {
-				"type": "err_1454824224156",
+				"type": "1454824224156_err",
 				"data":  "err message"
 			},
 			"data": {
 				"string": "string",
 				"number": 123,
 				"buffer": {
-					"type": "buf_1454824224156",
+					"type": "1454824224156_buf",
 					"data": [98, 117, 102, 102, 101, 114]
 				},
 				"buffer2": {
-					"type": "buf_2222222222222",
+					"type": "2222222222222_buf",
 					"data": [98, 117, 102, 102, 101, 114]
 				}
 			}
 		};
-		var TYPES = {
-			BUFFER_KEY: 'buf_1454824224156',
-			ERROR_KEY: 'err_1454824224156'
-		};
+		var KEY = 1454824224156;
 
-		var newData = json.parse(data, TYPES);
+		var newData = json.parse(data, KEY);
 		expect(newData.data).to.be.an('object');
 		expect(newData.result).to.be.an(Error);
 		expect(newData.result.message).to.be('err message');

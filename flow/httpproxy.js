@@ -23,7 +23,7 @@ function httpproxy(runtime, callback)
 		{
 			try {
 				data = JSON.parse(body);
-				data = json.parse(data, data.CONST_VARS);
+				data = json.parse(data, data.CONST_KEY);
 			}
 			catch(e)
 			{
@@ -153,7 +153,7 @@ function getRequestParams(runtime, body)
 
 	var url = appendUrl(options.httpproxy, 'action='+runtime.action);
 	body = json.stringify(body);
-	body.CONST_VARS = json.CONST_VARS;
+	body.CONST_KEY = json.CONST_KEY;
 
 	var bodystr = JSON.stringify(body, null, '\t');
 	debug('request url:%s', url);
