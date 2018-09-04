@@ -6,10 +6,12 @@ package-lock.json
 .gitmodules
 .gitattributes
 .travis.yml
+.gitattributes
 .eslintrc.js
 .eslintignore
 .editorconfig
 .npmignore
+appveyor.yml
 .tags*
 .DS_Store
 

@@ -28,19 +28,19 @@ npm i clientlinker-flow-httpproxy --save
 ```javascript
 var clientlinker = require('clientlinker');
 var linker = clientlinker({
-	flows: ['confighandler', 'httpproxy'],
-	defaults: {
-		httpproxy: 'http://localhost/clientlinker_proxy?'
-	},
-	clients: {
-		client: {
-			confighandler: {
-				clientHanlder: function(query, body, callback, options) {
-					return Promise.resolve({result: {}});
-				},
-			}
-		}
-	}
+  flows: ['confighandler', 'httpproxy'],
+  defaults: {
+    httpproxy: 'http://localhost/clientlinker_proxy?'
+  },
+  clients: {
+    client: {
+      confighandler: {
+        clientHanlder: function(query, body, callback, options) {
+          return Promise.resolve({result: {}});
+        },
+      }
+    }
+  }
 });
 
 linker.flow('confighandler', require('clientlinker-flow-confighandler'));
@@ -48,7 +48,7 @@ linker.flow('httpproxy', require('clientlinker-flow-httpproxy'));
 
 // use
 linker.run('client.clientHanlder', null, {id: 13})
-	.then(function(){});
+  .then(function(){});
 ```
 
 
