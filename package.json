@@ -18,6 +18,7 @@
   "author": "Bacra Woo<bacra.woo@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "ajv": "^6.5.3",
     "bluebird": "^3.5.2",
     "debug": "^3.1.0",
     "depd": "^1.1.2",
