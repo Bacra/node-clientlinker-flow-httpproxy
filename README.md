@@ -30,14 +30,14 @@ var clientlinker = require('clientlinker');
 var linker = clientlinker({
   flows: ['confighandler', 'httpproxy'],
   defaults: {
-    httpproxy: 'http://localhost/clientlinker_proxy?'
+    httpproxy: 'http://localhost/clientlinker_proxy'
   },
   clients: {
     client: {
       confighandler: {
         clientHanlder: function(query, body, callback, options) {
           return Promise.resolve({result: {}});
-        },
+        }
       }
     }
   }
