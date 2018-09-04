@@ -10,6 +10,8 @@ var json		= require('../lib/json');
 exports = module.exports = httpproxy;
 exports.methods = function(){return ['*']};
 
+var urlCache = {};
+
 function httpproxy(runtime, callback)
 {
 	var body = getRequestBody(runtime);
@@ -86,11 +88,17 @@ function httpproxy(runtime, callback)
 exports.appendUrl_ = appendUrl;
 function appendUrl(url, query)
 {
-	var lastChar = url.charAt(url.length-1);
-	var splitChar = lastChar == '?' || lastChar == '&'
-			? '' : (url.indexOf('?') != -1 ? '&' : '?');
+	var rootUrl = urlCache[url];
 
-	return url + splitChar + query;
+	if (!rootUrl)
+	{
+		var lastChar = url.charAt(url.length-1);
+		var splitChar = lastChar == '?' || lastChar == '&'
+				? '' : (url.indexOf('?') != -1 ? '&' : '?');
+		rootUrl = urlCache[url] = url + splitChar;
+	}
+
+	return  rootUrl + query;
 }
 
 
