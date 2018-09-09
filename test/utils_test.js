@@ -3,7 +3,7 @@
 var http				= require('http');
 var expr				= require('express');
 var debug				= require('debug')('clientlinker-flow-httpproxy:utils_test');
-var ClientLinker		= require('clientlinker');
+var clientlinker		= require('clientlinker');
 var proxyRoute			= require('../lib/route');
 var expect				= require('expect.js');
 var confighandlerFlow	= require('clientlinker-flow-confighandler');
@@ -30,7 +30,7 @@ function initLinker(options)
 	options.clients.client_svr_noflows = {};
 	options.clients.client_svr_not_exists = {};
 
-	var linker = ClientLinker(options);
+	var linker = clientlinker(options);
 
 	options.flows.forEach(function(name)
 	{

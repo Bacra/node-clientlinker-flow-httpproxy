@@ -13,41 +13,6 @@ var initTestSvrLinker	= utilsTestHttpproxy.initTestSvrLinker;
 
 describe('#httpproxy', function()
 {
-	describe('#base', function()
-	{
-		initTestSvrLinker({});
-
-		// describe('#run client', function()
-		// {
-		// 	confighandlerTest.run(svrLinker);
-		// });
-
-		describe('#run new client', function()
-		{
-			confighandlerTest.run(initLinker({}));
-		});
-
-		it('#no client', function()
-		{
-			var linker = initLinker({});
-			linker.client('client_not_exists', {});
-
-			return linker.run('client_not_exists.method')
-				.then(function(){expect().fail()},
-					function(err)
-					{
-						// 注意：不是NO CLIENT
-						expect(err.message)
-							.to.contain('CLIENTLINKER:NotFound,client_not_exists.method');
-						expect(err.CLIENTLINKER_TYPE)
-							.to.be('CLIENT FLOW OUT');
-						expect(err.CLIENTLINKER_ACTION)
-							.to.be('client_not_exists.method');
-					});
-		});
-	});
-
-
 	describe('#utils', function()
 	{
 		it('#appendUrl', function()
@@ -110,14 +75,14 @@ describe('#httpproxy', function()
 					it('#run:'+name, function()
 					{
 						var retPromise = linker2.run(action);
+						var runtime = linker2.lastRuntime;
+
 						return retPromise
 							.then(function(){expect().fail()},
 								function(err)
 								{
 									var runtime = retPromise.runtime;
-									var responeError = runtime.retry[0]
-										.getRunnedFlowByName('httpproxy')
-										.httpproxyResponeError;
+									var responeError = runtime.debug('httpproxyResponeError');
 									expect(responeError.message)
 										.to.be('httpproxy,respone!200,501');
 									expect(err.message.substr(0, 22))
