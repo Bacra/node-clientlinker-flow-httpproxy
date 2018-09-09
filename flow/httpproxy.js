@@ -8,7 +8,6 @@ var aes			= require('../lib/aes_cipher');
 var json		= require('../lib/json');
 
 exports = module.exports = httpproxy;
-exports.methods = function(){return ['*']};
 
 var urlCache = {};
 
