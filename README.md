@@ -6,6 +6,7 @@ Clientlinker-flow-httpproxy
 [![Build Status][travis-image]][travis-url]
 [![Coveralls][coveralls-image]][coveralls-url]
 [![NPM License][license-image]][npm-url]
+[![Install Size][install-size-image]][install-size-url]
 
 
 # Install
@@ -61,3 +62,5 @@ linker.run('client.clientHanlder', null, {id: 13})
 [coveralls-image]: https://img.shields.io/coveralls/Bacra/node-clientlinker-flow-httpproxy.svg
 [coveralls-url]: https://coveralls.io/github/Bacra/node-clientlinker-flow-httpproxy
 [license-image]: http://img.shields.io/npm/l/clientlinker-flow-httpproxy.svg
+[install-size-url]: https://packagephobia.now.sh/result?p=clientlinker-flow-httpproxy
+[install-size-image]: https://packagephobia.now.sh/badge?p=clientlinker-flow-httpproxy
