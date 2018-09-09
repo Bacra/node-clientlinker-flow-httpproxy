@@ -35,8 +35,8 @@ describe('#base', function()
 						.to.contain('CLIENTLINKER:NotFound,client_not_exists.method');
 					expect(err.CLIENTLINKER_TYPE)
 						.to.be('CLIENT FLOW OUT');
-					expect(err.CLIENTLINKER_ACTION)
-						.to.be('client_not_exists.method');
+					// expect(err.CLIENTLINKER_ACTION)
+						// .to.be('client_not_exists.method');
 				});
 	});
 });

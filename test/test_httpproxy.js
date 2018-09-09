@@ -81,7 +81,6 @@ describe('#httpproxy', function()
 							.then(function(){expect().fail()},
 								function(err)
 								{
-									var runtime = retPromise.runtime;
 									var responeError = runtime.debug('httpproxyResponeError');
 									expect(responeError.message)
 										.to.be('httpproxy,respone!200,501');
@@ -254,12 +253,12 @@ describe('#httpproxy', function()
 								}
 							});
 						var retPromise = linker.run('client_its.method_no_exists');
+						var runtime = linker.lastRuntime;
 
 						return retPromise
 							.then(function(){expect().fail()},
 								function(err)
 								{
-									var runtime = retPromise.runtime;
 									expect(err.CLIENTLINKER_TYPE).to.be('CLIENT FLOW OUT');
 									expect(runtime.env.source).to.be('run');
 
@@ -277,9 +276,7 @@ describe('#httpproxy', function()
 										var targetSvrLevel = svrLevel > 0 ? svrLevel : 1;
 										expect(runtime.env.httpproxyLevel)
 											.to.be(targetSvrLevel);
-										var responeError = runtime.retry[0]
-											.getRunnedFlowByName('httpproxy')
-											.httpproxyResponeError;
+										var responeError = runtime.debug('httpproxyResponeError');
 										expect(responeError.message)
 											.to.be('httpproxy,respone!200,501');
 										expect(err.message.substr(0, 22))
