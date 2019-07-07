@@ -68,9 +68,9 @@ describe('#httpproxy', function()
 							.then(function(){expect().fail()},
 								function(err)
 								{
-									var responeError = runtime.debug('httpproxyResponeError');
-									expect(responeError.message)
-										.to.be('httpproxy,respone!200,501');
+									var responseError = runtime.debug('httpproxyResponseError');
+									expect(responseError.message)
+										.to.be('httpproxy,response!200,501');
 									expect(err.message.substr(0, 22))
 										.to.be('CLIENTLINKER:NotFound,');
 								});
@@ -277,19 +277,19 @@ describe('#httpproxy', function()
 									{
 										expect(runtime.env.httpproxyLevel)
 											.to.be(undefined);
-										var responeError = runtime.retry[0]
+										var responseError = runtime.retry[0]
 											.getRunnedFlowByName('httpproxy')
-											.httpproxyResponeError;
-										expect(responeError).to.be(undefined);
+											.httpproxyResponseError;
+										expect(responseError).to.be(undefined);
 									}
 									else
 									{
 										var targetSvrLevel = svrLevel > 0 ? svrLevel : 1;
 										expect(runtime.env.httpproxyLevel)
 											.to.be(targetSvrLevel);
-										var responeError = runtime.debug('httpproxyResponeError');
-										expect(responeError.message)
-											.to.be('httpproxy,respone!200,501');
+										var responseError = runtime.debug('httpproxyResponseError');
+										expect(responseError.message)
+											.to.be('httpproxy,response!200,501');
 										expect(err.message.substr(0, 22))
 											.to.be('CLIENTLINKER:NotFound,');
 									}

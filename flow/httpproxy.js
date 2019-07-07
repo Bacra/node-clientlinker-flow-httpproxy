@@ -2,11 +2,13 @@
 
 var Promise		= require('bluebird');
 var _			= require('lodash');
-var debug		= require('debug')('clientlinker:httpproxy');
-var deprecate	= require('depd')('clientlinker:httpproxy');
+var debug		= require('debug')('clientlinker-flow-httpproxy');
+var deprecate	= require('depd')('clientlinker-flow-httpproxy');
 var request		= require('request');
 var signature	= require('../lib/signature');
 var json		= require('../lib/json');
+
+var ServerFixedTime = 0;
 
 exports = module.exports = httpproxy;
 
@@ -20,16 +22,27 @@ function httpproxy(runtime, callback)
 		{
 			return new Promise(function(resolve, reject)
 			{
-				request.post(params, function(err, respone, body)
+				request.post(params, function(err, response, body, a)
 				{
 					if (err)
 						reject(err);
 					else
-						resolve({ respone: respone, body: body });
+						resolve({ response: response, body: body });
 				});
 			});
 		})
 		.then(function(result) {
+			var response = result.response;
+
+			var clientResponseTime = +response.responseStartTime;
+			var serverResponseTime = +response.headers['xh-httpproxy-requesttime'];
+			debug('clientResponseTime: %s serverResponseTime: %s', clientResponseTime, serverResponseTime);
+			if (clientResponseTime && serverResponseTime)
+			{
+				ServerFixedTime = serverResponseTime - clientResponseTime;
+				debug('ServerFixedTime: %sms', ServerFixedTime);
+			}
+
 			try {
 				var data = JSON.parse(result.body);
 				data = json.parse(data, data.CONST_KEY);
@@ -37,7 +50,7 @@ function httpproxy(runtime, callback)
 			catch(err)
 			{
 				debug('request parse json err:%o', err);
-				runtime.debug && runtime.debug('httpproxyResponeError', err);
+				runtime.debug && runtime.debug('httpproxyResponseError', err);
 				return callback.next();
 			}
 
@@ -52,7 +65,7 @@ function httpproxy(runtime, callback)
 			{
 				data.httpproxy_msg.forEach(function(msg)
 				{
-					debug('[route respone] %s', msg);
+					debug('[route response] %s', msg);
 				});
 			}
 
@@ -62,18 +75,17 @@ function httpproxy(runtime, callback)
 			{
 				data.httpproxy_deprecate.forEach(function(msg)
 				{
-					deprecate('[route respone] '+msg);
+					deprecate('[route response] '+msg);
 				});
 			}
 
-			var respone = result.respone;
-			if (respone && respone.statusCode != 200)
+			if (response && response.statusCode != 200)
 			{
-				var err = new Error('httpproxy,respone!200,'+respone.statusCode);
+				var err = new Error('httpproxy,response!200,'+response.statusCode);
 				debug('request err:%o', err);
-				if (respone.statusCode == 501)
+				if (response.statusCode == 501)
 				{
-					runtime.debug && runtime.debug('httpproxyResponeError', err);
+					runtime.debug && runtime.debug('httpproxyResponseError', err);
 					return callback.next();
 				}
 
@@ -132,6 +144,7 @@ function getRequestParams(runtime, body)
 
 	var headers = options.httpproxyHeaders || {};
 	headers['Content-Type'] = 'application/json';
+	headers['XH-Httpproxy-Time'] = Date.now() + ServerFixedTime;
 
 	var runOptions	= runtime.options || {};
 	var timeout		= runOptions.timeout || options.httpproxyTimeout || 10000;
@@ -161,6 +174,7 @@ function getRequestParams(runtime, body)
 		body	: bodystr,
 		headers	: headers,
 		timeout	: timeout,
-		proxy	: proxy
+		proxy	: proxy,
+		time	: true,
 	});
 }
