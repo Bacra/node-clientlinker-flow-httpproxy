@@ -2,7 +2,7 @@
 
 var expect				= require('expect.js');
 var request				= require('request');
-var aes					= require('../lib/aes_cipher');
+var signature			= require('../lib/signature');
 var httpproxy			= require('../flow/httpproxy');
 var utilsTestHttpproxy	= require('./utils_test');
 var confighandlerTest	= require('clientlinker-flow-confighandler-test');
@@ -96,7 +96,8 @@ describe('#httpproxy', function()
 						{
 							var body = httpproxy.getRequestBody_(runtime);
 							httpproxy.getRequestParams_(runtime, body)
-								.then(function(opts) {
+								.then(function(opts)
+								{
 									opts.body = '{dd';
 									request.post(opts, function(err, response, body)
 									{
@@ -155,7 +156,7 @@ describe('#httpproxy', function()
 
 			describe('#err403', function()
 			{
-				function itKey(name, statusCode, key)
+				function itKey(name, statusCode, ckey)
 				{
 					it('#'+name, function()
 					{
@@ -167,9 +168,16 @@ describe('#httpproxy', function()
 								custom: function custom(runtime, callback)
 								{
 									var body = httpproxy.getRequestBody_(runtime);
-									body.key = key;
 									httpproxy.getRequestParams_(runtime, body)
-										.then(function(opts) {
+										.then(function(opts)
+										{
+											if (ckey)
+											{
+												var body = JSON.parse(opts.body);
+												body.ckey = ckey;
+												opts.body = JSON.stringify(body);
+											}
+
 											request.post(opts, function(err, response, body)
 											{
 												callback.resolve(
@@ -194,17 +202,29 @@ describe('#httpproxy', function()
 					});
 				}
 
-				itKey('normal', 200,
-					aes.cipher('client_its.method,'+Date.now(), httpproxyKey));
+				var now = Date.now();
+				itKey('normal', 200, {
+					time: now,
+					key: signature.signature('client_its.method', now, httpproxyKey),
+				});
 
 				itKey('no key', 403);
 				itKey('err key', 403, 'dddd');
-				itKey('err key', 403,
-					aes.cipher('client_its.method,'+Date.now(), httpproxyKey+'22'));
-				itKey('err key', 403,
-					aes.cipher('client_its.method_other,'+Date.now(), httpproxyKey));
-				itKey('expired', 403,
-					aes.cipher('client_its.method,11', httpproxyKey));
+				itKey('no time', 403, {
+					key: signature.signature('client_its.method', now, httpproxyKey),
+				});
+				itKey('err key', 403, {
+					time: now,
+					key: signature.signature('client_its.method', now, httpproxyKey+'22'),
+				});
+				itKey('err key', 403, {
+					time: now,
+					key: signature.signature('client_its.method_other', now, httpproxyKey),
+				});
+				itKey('expired', 403, {
+					time: now,
+					key: signature.signature('client_its.method', 11, httpproxyKey),
+				});
 
 				itKey('direct', 200, httpproxyKey);
 			});

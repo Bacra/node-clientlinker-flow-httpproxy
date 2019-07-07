@@ -5,7 +5,7 @@ var _			= require('lodash');
 var debug		= require('debug')('clientlinker:httpproxy');
 var deprecate	= require('depd')('clientlinker:httpproxy');
 var request		= require('request');
-var aes			= require('../lib/aes_cipher');
+var signature	= require('../lib/signature');
 var json		= require('../lib/json');
 
 exports = module.exports = httpproxy;
@@ -121,10 +121,6 @@ function getRequestBody(runtime)
 		env		: runtime.env
 	};
 
-	// check aes key
-	if (options.httpproxyKey)
-		body.key = aes.cipher(runtime.action+','+Date.now(), options.httpproxyKey);
-
 	return body;
 }
 
@@ -147,6 +143,15 @@ function getRequestParams(runtime, body)
 	body = json.stringify(body);
 	body.CONST_KEY = json.CONST_KEY;
 	body.action = runtime.action;
+
+	// check signature key
+	if (options.httpproxyKey) {
+		var now = Date.now();
+		body.ckey = {
+			time: now,
+			key: signature.signature(runtime.action, now, options.httpproxyKey)
+		};
+	}
 
 	var bodystr = JSON.stringify(body, null, '\t');
 
