@@ -26,16 +26,19 @@ describe('#httpproxy', function()
 						custom: function custom(runtime, callback)
 						{
 							var body = httpproxy.getRequestBody_(runtime);
-							var opts = httpproxy.getRequestParams_(runtime, body);
-							request.post(opts, function(err, response, body)
-							{
-								callback.resolve(
+							httpproxy.getRequestParams_(runtime, body)
+								.then(function(opts)
+								{
+									request.post(opts, function(err, response, body)
 									{
-										err: err,
-										response: response,
-										body: body
+										callback.resolve(
+											{
+												err: err,
+												response: response,
+												body: body
+											});
 									});
-							});
+								});
 						}
 					}
 				});
@@ -92,17 +95,19 @@ describe('#httpproxy', function()
 						custom: function custom(runtime, callback)
 						{
 							var body = httpproxy.getRequestBody_(runtime);
-							var opts = httpproxy.getRequestParams_(runtime, body);
-							opts.body = '{dd';
-							request.post(opts, function(err, response, body)
-							{
-								callback.resolve(
+							httpproxy.getRequestParams_(runtime, body)
+								.then(function(opts) {
+									opts.body = '{dd';
+									request.post(opts, function(err, response, body)
 									{
-										err: err,
-										response: response,
-										body: body
+										callback.resolve(
+											{
+												err: err,
+												response: response,
+												body: body
+											});
 									});
-							});
+								});
 						}
 					}
 				});
@@ -163,16 +168,18 @@ describe('#httpproxy', function()
 								{
 									var body = httpproxy.getRequestBody_(runtime);
 									body.key = key;
-									var opts = httpproxy.getRequestParams_(runtime, body);
-									request.post(opts, function(err, response, body)
-									{
-										callback.resolve(
+									httpproxy.getRequestParams_(runtime, body)
+										.then(function(opts) {
+											request.post(opts, function(err, response, body)
 											{
-												err: err,
-												response: response,
-												body: body
+												callback.resolve(
+													{
+														err: err,
+														response: response,
+														body: body
+													});
 											});
-									});
+										});
 								}
 							}
 						});

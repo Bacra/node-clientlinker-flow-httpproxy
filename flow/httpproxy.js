@@ -1,5 +1,6 @@
 'use strict';
 
+var Promise		= require('bluebird');
 var _			= require('lodash');
 var debug		= require('debug')('clientlinker:httpproxy');
 var deprecate	= require('depd')('clientlinker:httpproxy');
@@ -13,20 +14,31 @@ function httpproxy(runtime, callback)
 {
 	var body = getRequestBody(runtime);
 	if (!body) return callback.next();
-	var params = getRequestParams(runtime, body);
 
-	request.post(params, function(err, respone, body)
-	{
-		var data;
-		if (!err)
+	return getRequestParams(runtime, body)
+		.then(function(params)
 		{
+			return new Promise(function(resolve, reject)
+			{
+				request.post(params, function(err, respone, body)
+				{
+					if (err)
+						reject(err);
+					else
+						resolve({ respone: respone, body: body });
+				});
+			});
+		})
+		.then(function(result) {
 			try {
-				data = JSON.parse(body);
+				var data = JSON.parse(result.body);
 				data = json.parse(data, data.CONST_KEY);
 			}
-			catch(e)
+			catch(err)
 			{
-				err = e;
+				debug('request parse json err:%o', err);
+				runtime.debug && runtime.debug('httpproxyResponeError', err);
+				return callback.next();
 			}
 
 			if (data && data.env)
@@ -34,50 +46,45 @@ function httpproxy(runtime, callback)
 				_.extend(runtime.env, data.env, {source: runtime.env.source});
 			}
 
-
-			if (respone.statusCode != 200)
+			// 预留接口，在客户端显示server端日志
+			if (data.httpproxy_msg
+				&& Array.isArray(data.httpproxy_msg))
 			{
-				err = new Error('httpproxy,respone!200,'+respone.statusCode);
+				data.httpproxy_msg.forEach(function(msg)
+				{
+					debug('[route respone] %s', msg);
+				});
+			}
+
+			// 预留接口，在客户端现实server端兼容日志
+			if (data.httpproxy_deprecate
+				&& Array.isArray(data.httpproxy_deprecate))
+			{
+				data.httpproxy_deprecate.forEach(function(msg)
+				{
+					deprecate('[route respone] '+msg);
+				});
+			}
+
+			var respone = result.respone;
+			if (respone && respone.statusCode != 200)
+			{
+				var err = new Error('httpproxy,respone!200,'+respone.statusCode);
+				debug('request err:%o', err);
 				if (respone.statusCode == 501)
 				{
 					runtime.debug && runtime.debug('httpproxyResponeError', err);
-					return callback.nextAndResolve();
+					return callback.next();
 				}
+
+				throw err;
 			}
-		}
 
-		if (err)
-		{
-			debug('request err:%o', err);
-			runtime.debug && runtime.debug('httpproxyResponeError', err);
-			return callback.reject(err);
-		}
-
-		// 预留接口，在客户端显示server端日志
-		if (data.httpproxy_msg
-			&& Array.isArray(data.httpproxy_msg))
-		{
-			data.httpproxy_msg.forEach(function(msg)
-			{
-				debug('[route respone] %s', msg);
-			});
-		}
-
-		// 预留接口，在客户端现实server端兼容日志
-		if (data.httpproxy_deprecate
-			&& Array.isArray(data.httpproxy_deprecate))
-		{
-			data.httpproxy_deprecate.forEach(function(msg)
-			{
-				deprecate('[route respone] '+msg);
-			});
-		}
-
-		if (data.result)
-			callback.reject(data.result);
-		else
-			callback.resolve(data.data);
-	});
+			if (data.result)
+				throw data.result;
+			else
+				return data.data;
+		});
 }
 
 exports.getRequestBody_ = getRequestBody;
@@ -143,11 +150,12 @@ function getRequestParams(runtime, body)
 
 	var bodystr = JSON.stringify(body, null, '\t');
 
-	return {
+	return Promise.resolve(
+	{
 		url		: options.httpproxy,
 		body	: bodystr,
 		headers	: headers,
 		timeout	: timeout,
 		proxy	: proxy
-	};
+	});
 }
