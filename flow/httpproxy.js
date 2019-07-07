@@ -9,8 +9,6 @@ var json		= require('../lib/json');
 
 exports = module.exports = httpproxy;
 
-var urlCache = {};
-
 function httpproxy(runtime, callback)
 {
 	var body = getRequestBody(runtime);
@@ -82,24 +80,6 @@ function httpproxy(runtime, callback)
 	});
 }
 
-
-exports.appendUrl_ = appendUrl;
-function appendUrl(url, query)
-{
-	var rootUrl = urlCache[url];
-
-	if (!rootUrl)
-	{
-		var lastChar = url.charAt(url.length-1);
-		var splitChar = lastChar == '?' || lastChar == '&'
-				? '' : (url.indexOf('?') != -1 ? '&' : '?');
-		rootUrl = urlCache[url] = url + splitChar;
-	}
-
-	return  rootUrl + query;
-}
-
-
 exports.getRequestBody_ = getRequestBody;
 function getRequestBody(runtime)
 {
@@ -128,10 +108,10 @@ function getRequestBody(runtime)
 
 
 	var body = {
-		query		: runtime.query,
-		body		: runtime.body,
-		options	    : runtime.options,
-		env			: runtime.env
+		query	: runtime.query,
+		body	: runtime.body,
+		options	: runtime.options,
+		env		: runtime.env
 	};
 
 	// check aes key
@@ -157,15 +137,14 @@ function getRequestParams(runtime, body)
 			|| process.env.clientlinker_http_proxy
 			|| process.env.http_proxy;
 
-	var url = appendUrl(options.httpproxy, 'action='+runtime.action);
 	body = json.stringify(body);
 	body.CONST_KEY = json.CONST_KEY;
+	body.action = runtime.action;
 
 	var bodystr = JSON.stringify(body, null, '\t');
-	debug('request url:%s', url);
 
 	return {
-		url		: url,
+		url		: options.httpproxy,
 		body	: bodystr,
 		headers	: headers,
 		timeout	: timeout,
