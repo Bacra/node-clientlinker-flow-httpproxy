@@ -156,7 +156,7 @@ describe('#httpproxy', function()
 
 			describe('#err403', function()
 			{
-				function itKey(name, statusCode, ckey)
+				function itKey(name, statusCode, info)
 				{
 					it('#'+name, function()
 					{
@@ -171,10 +171,25 @@ describe('#httpproxy', function()
 									httpproxy.getRequestParams_(runtime, body)
 										.then(function(opts)
 										{
-											if (ckey)
+											if (info)
 											{
 												var body = JSON.parse(opts.body);
-												body.ckey = ckey;
+
+												if (info.ckey)
+													body.ckey = info.ckey;
+												else
+													delete body.ckey;
+
+												if (info.time)
+													body.time = info.time;
+												else
+													delete body.time;
+
+												if (info.random)
+													body.random = info.random;
+												else
+													delete body.random;
+
 												opts.body = JSON.stringify(body);
 											}
 
@@ -203,30 +218,45 @@ describe('#httpproxy', function()
 				}
 
 				var now = Date.now();
+				var random = Math.random();
 				itKey('normal', 200, {
 					time: now,
-					key: signature.signature('client_its.method', now, httpproxyKey),
+					random: random,
+					ckey: signature.signature(['client_its.method', now, random], httpproxyKey),
 				});
 
 				itKey('no key', 403);
 				itKey('err key', 403, 'dddd');
 				itKey('no time', 403, {
-					key: signature.signature('client_its.method', now, httpproxyKey),
+					random: random,
+					ckey: signature.signature(['client_its.method', now, random], httpproxyKey),
+				});
+				itKey('no random', 403, {
+					time: now,
+					ckey: signature.signature(['client_its.method', now, random], httpproxyKey),
+				});
+				itKey('no time & random', 403, {
+					ckey: signature.signature(['client_its.method', now, random], httpproxyKey),
 				});
 				itKey('err key', 403, {
 					time: now,
-					key: signature.signature('client_its.method', now, httpproxyKey+'22'),
+					random: random,
+					ckey: signature.signature(['client_its.method', now, random], httpproxyKey+'22'),
 				});
 				itKey('err key', 403, {
 					time: now,
-					key: signature.signature('client_its.method_other', now, httpproxyKey),
+					random: random,
+					ckey: signature.signature(['client_its.method_other', now, random], httpproxyKey),
 				});
 				itKey('expired', 403, {
 					time: now,
-					key: signature.signature('client_its.method', 11, httpproxyKey),
+					random: random,
+					ckey: signature.signature(['client_its.method', 11, random], httpproxyKey),
 				});
 
-				itKey('direct', 200, httpproxyKey);
+				itKey('direct', 200, {
+					ckey: httpproxyKey,
+				});
 			});
 
 			// it('#err403', function()

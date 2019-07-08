@@ -156,14 +156,12 @@ function getRequestParams(runtime, body)
 	body = json.stringify(body);
 	body.CONST_KEY = json.CONST_KEY;
 	body.action = runtime.action;
+	body.time = Date.now();
+	body.random = Math.random() * 100000 | 0;
 
 	// check signature key
 	if (options.httpproxyKey) {
-		var now = Date.now();
-		body.ckey = {
-			time: now,
-			key: signature.signature(runtime.action, now, options.httpproxyKey)
-		};
+		body.ckey = signature.signature([runtime.action, body.time, body.random], options.httpproxyKey);
 	}
 
 	var bodystr = JSON.stringify(body, null, '\t');
