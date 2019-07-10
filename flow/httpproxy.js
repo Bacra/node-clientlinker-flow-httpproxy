@@ -5,7 +5,7 @@ var _			= require('lodash');
 var debug		= require('debug')('clientlinker-flow-httpproxy');
 var deprecate	= require('depd')('clientlinker-flow-httpproxy');
 var request		= require('request');
-var signature	= require('../lib/signature');
+var aes			= require('../lib/aes_cipher');
 var json		= require('../lib/json');
 
 var ServerFixedTime = 0;
@@ -17,18 +17,16 @@ function httpproxy(runtime, callback)
 	var body = getRequestBody(runtime);
 	if (!body) return callback.next();
 
-	return getRequestParams(runtime, body)
-		.then(function(params)
+	var params = getRequestParams(runtime, body);
+
+	return new Promise(function(resolve, reject)
 		{
-			return new Promise(function(resolve, reject)
+			request.post(params, function(err, response, body)
 			{
-				request.post(params, function(err, response, body, a)
-				{
-					if (err)
-						reject(err);
-					else
-						resolve({ response: response, body: body });
-				});
+				if (err)
+					reject(err);
+				else
+					resolve({ response: response, body: body });
 			});
 		})
 		.then(function(result) {
@@ -144,7 +142,6 @@ function getRequestParams(runtime, body)
 
 	var headers = options.httpproxyHeaders || {};
 	headers['Content-Type'] = 'application/json';
-	headers['XH-Httpproxy-Time'] = Date.now() + ServerFixedTime;
 
 	var runOptions	= runtime.options || {};
 	var timeout		= runOptions.timeout || options.httpproxyTimeout || 10000;
@@ -156,23 +153,19 @@ function getRequestParams(runtime, body)
 	body = json.stringify(body);
 	body.CONST_KEY = json.CONST_KEY;
 	body.action = runtime.action;
-	body.time = Date.now();
-	body.random = Math.random() * 100000 | 0;
 
-	// check signature key
-	if (options.httpproxyKey) {
-		body.ckey = signature.signature([runtime.action, body.time, body.random], options.httpproxyKey);
-	}
+	// check aes key
+	if (options.httpproxyKey)
+		body.key = aes.cipher(runtime.action+','+(Date.now() + ServerFixedTime), options.httpproxyKey);
 
 	var bodystr = JSON.stringify(body, null, '\t');
 
-	return Promise.resolve(
-	{
+	return {
 		url		: options.httpproxy,
 		body	: bodystr,
 		headers	: headers,
 		timeout	: timeout,
 		proxy	: proxy,
 		time	: true,
-	});
+	};
 }

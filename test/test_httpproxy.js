@@ -2,7 +2,7 @@
 
 var expect				= require('expect.js');
 var request				= require('request');
-var signature			= require('../lib/signature');
+var aes					= require('../lib/aes_cipher');
 var httpproxy			= require('../flow/httpproxy');
 var utilsTestHttpproxy	= require('./utils_test');
 var confighandlerTest	= require('clientlinker-flow-confighandler-test');
@@ -26,19 +26,16 @@ describe('#httpproxy', function()
 						custom: function custom(runtime, callback)
 						{
 							var body = httpproxy.getRequestBody_(runtime);
-							httpproxy.getRequestParams_(runtime, body)
-								.then(function(opts)
-								{
-									request.post(opts, function(err, response, body)
+							var opts = httpproxy.getRequestParams_(runtime, body);
+							request.post(opts, function(err, response, body)
+							{
+								callback.resolve(
 									{
-										callback.resolve(
-											{
-												err: err,
-												response: response,
-												body: body
-											});
+										err: err,
+										response: response,
+										body: body
 									});
-								});
+							});
 						}
 					}
 				});
@@ -95,9 +92,7 @@ describe('#httpproxy', function()
 						custom: function custom(runtime, callback)
 						{
 							var body = httpproxy.getRequestBody_(runtime);
-							httpproxy.getRequestParams_(runtime, body)
-								.then(function(opts)
-								{
+							var opts = httpproxy.getRequestParams_(runtime, body);
 									opts.body = '{dd';
 									request.post(opts, function(err, response, body)
 									{
@@ -108,7 +103,6 @@ describe('#httpproxy', function()
 												body: body
 											});
 									});
-								});
 						}
 					}
 				});
@@ -156,7 +150,7 @@ describe('#httpproxy', function()
 
 			describe('#err403', function()
 			{
-				function itKey(name, statusCode, info)
+				function itKey(name, statusCode, key)
 				{
 					it('#'+name, function()
 					{
@@ -168,41 +162,19 @@ describe('#httpproxy', function()
 								custom: function custom(runtime, callback)
 								{
 									var body = httpproxy.getRequestBody_(runtime);
-									httpproxy.getRequestParams_(runtime, body)
-										.then(function(opts)
-										{
-											if (info)
+									var opts = httpproxy.getRequestParams_(runtime, body);
+									var allbody = JSON.parse(opts.body);
+									allbody.key = key;
+									opts.body = JSON.stringify(allbody);
+									request.post(opts, function(err, response, body)
+									{
+										callback.resolve(
 											{
-												var body = JSON.parse(opts.body);
-
-												if (info.ckey)
-													body.ckey = info.ckey;
-												else
-													delete body.ckey;
-
-												if (info.time)
-													body.time = info.time;
-												else
-													delete body.time;
-
-												if (info.random)
-													body.random = info.random;
-												else
-													delete body.random;
-
-												opts.body = JSON.stringify(body);
-											}
-
-											request.post(opts, function(err, response, body)
-											{
-												callback.resolve(
-													{
-														err: err,
-														response: response,
-														body: body
-													});
+												err: err,
+												response: response,
+												body: body
 											});
-										});
+									});
 								}
 							}
 						});
@@ -217,46 +189,19 @@ describe('#httpproxy', function()
 					});
 				}
 
-				var now = Date.now();
-				var random = Math.random();
-				itKey('normal', 200, {
-					time: now,
-					random: random,
-					ckey: signature.signature(['client_its.method', now, random], httpproxyKey),
-				});
+				itKey('normal', 200,
+					aes.cipher('client_its.method,'+Date.now(), httpproxyKey));
 
 				itKey('no key', 403);
 				itKey('err key', 403, 'dddd');
-				itKey('no time', 403, {
-					random: random,
-					ckey: signature.signature(['client_its.method', now, random], httpproxyKey),
-				});
-				itKey('no random', 403, {
-					time: now,
-					ckey: signature.signature(['client_its.method', now, random], httpproxyKey),
-				});
-				itKey('no time & random', 403, {
-					ckey: signature.signature(['client_its.method', now, random], httpproxyKey),
-				});
-				itKey('err key', 403, {
-					time: now,
-					random: random,
-					ckey: signature.signature(['client_its.method', now, random], httpproxyKey+'22'),
-				});
-				itKey('err key', 403, {
-					time: now,
-					random: random,
-					ckey: signature.signature(['client_its.method_other', now, random], httpproxyKey),
-				});
-				itKey('expired', 403, {
-					time: now,
-					random: random,
-					ckey: signature.signature(['client_its.method', 11, random], httpproxyKey),
-				});
+				itKey('err key', 403,
+					aes.cipher('client_its.method,'+Date.now(), httpproxyKey+'22'));
+				itKey('err key', 403,
+					aes.cipher('client_its.method_other,'+Date.now(), httpproxyKey));
+				itKey('expired', 403,
+					aes.cipher('client_its.method,11', httpproxyKey));
 
-				itKey('direct', 200, {
-					ckey: httpproxyKey,
-				});
+				itKey('direct', 200, httpproxyKey);
 			});
 
 			// it('#err403', function()
