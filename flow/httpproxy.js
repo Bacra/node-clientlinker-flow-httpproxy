@@ -150,19 +150,19 @@ function getRequestParams(runtime, body)
 			|| process.env.clientlinker_http_proxy
 			|| process.env.http_proxy;
 
-	body = json.stringify(body);
-	body.CONST_KEY = json.CONST_KEY;
-	body.action = runtime.action;
+	var postBody = {
+		data: json.stringify(body),
+		CONST_KEY: json.CONST_KEY,
+		action: runtime.action,
+	};
 
 	// check aes key
 	if (options.httpproxyKey)
-		body.key = aes.cipher(runtime.action+','+(Date.now() + ServerFixedTime), options.httpproxyKey);
-
-	var bodystr = JSON.stringify(body, null, '\t');
+		postBody.key = aes.cipher(runtime.action+','+(Date.now() + ServerFixedTime), options.httpproxyKey);
 
 	return {
 		url		: options.httpproxy,
-		body	: bodystr,
+		body	: JSON.stringify(postBody, null, '\t'),
 		headers	: headers,
 		timeout	: timeout,
 		proxy	: proxy,
