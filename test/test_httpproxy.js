@@ -166,7 +166,12 @@ describe('#httpproxy', function()
 								{
 									var body = httpproxy.getRequestBody_(runtime);
 									var opts = httpproxy.getRequestParams_(runtime, body);
-									if (key) opts.headers['XH-Httpproxy-Key'] = key;
+
+									if (key)
+										opts.headers['XH-Httpproxy-Key'] = key;
+									else if (key === null)
+										delete opts.headers['XH-Httpproxy-Key'];
+
 									request.post(opts, function(err, response, body)
 									{
 										callback.resolve(
@@ -192,6 +197,7 @@ describe('#httpproxy', function()
 
 				itKey('normal', 200);
 				itKey('err key', 403, 'dddd');
+				itKey('no key', 403, null);
 				itKey('direct', 200, httpproxyKey);
 			});
 
