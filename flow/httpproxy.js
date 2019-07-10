@@ -5,7 +5,7 @@ var _			= require('lodash');
 var debug		= require('debug')('clientlinker-flow-httpproxy');
 var deprecate	= require('depd')('clientlinker-flow-httpproxy');
 var request		= require('request');
-var aes			= require('../lib/aes_cipher');
+var signature	= require('../lib/signature');
 var json		= require('../lib/json');
 
 var ServerFixedTime = 0;
@@ -150,19 +150,26 @@ function getRequestParams(runtime, body)
 			|| process.env.clientlinker_http_proxy
 			|| process.env.http_proxy;
 
+	var requestStartTime = Date.now() + ServerFixedTime;
 	var postBody = {
 		data: json.stringify(body),
 		CONST_KEY: json.CONST_KEY,
 		action: runtime.action,
+		time: requestStartTime,
 	};
 
-	// check aes key
+	var bodystr = JSON.stringify(postBody, null, '\t');
+
+	// check key
 	if (options.httpproxyKey)
-		postBody.key = aes.cipher(runtime.action+','+(Date.now() + ServerFixedTime), options.httpproxyKey);
+	{
+		var key = signature.sha_content(bodystr, requestStartTime, options.httpproxyKey);
+		headers['XH-Httpproxy-Key'] = key;
+	}
 
 	return {
 		url		: options.httpproxy,
-		body	: JSON.stringify(postBody, null, '\t'),
+		body	: bodystr,
 		headers	: headers,
 		timeout	: timeout,
 		proxy	: proxy,
