@@ -198,7 +198,7 @@ describe('#httpproxy', function()
 				itKey('normal', 200);
 				itKey('err key', 403, 'dddd');
 				itKey('no key', 403, null);
-				itKey('direct', 200, httpproxyKey);
+				itKey('direct', 403, httpproxyKey);
 			});
 
 			// it('#err403', function()
