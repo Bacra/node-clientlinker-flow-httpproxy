@@ -2,7 +2,6 @@
 
 var expect				= require('expect.js');
 var request				= require('request');
-var signature			= require('../lib/signature');
 var httpproxy			= require('../flow/httpproxy');
 var utilsTestHttpproxy	= require('./utils_test');
 var confighandlerTest	= require('clientlinker-flow-confighandler-test');
