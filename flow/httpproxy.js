@@ -158,8 +158,10 @@ function getRequestParams(runtime, body)
 
 	var bodystr = JSON.stringify(postBody, null, '\t');
 
-	// check key
-	var requestStartTime;
+	var requestStartTime = Date.now() + ServerFixedTime;
+	// 增加对内容的签名
+	// 内容可能会超级大，所以分批计算签名
+	// 并且requestStartTime要尽量精确
 	if (options.httpproxyKey)
 	{
 		var hashContent = signature.get_sha_content(bodystr);
@@ -167,10 +169,6 @@ function getRequestParams(runtime, body)
 		requestStartTime = Date.now() + ServerFixedTime;
 		var key = signature.sha_content(hashContent, requestStartTime, options.httpproxyKey);
 		headers['XH-Httpproxy-Key'] = key;
-	}
-	else
-	{
-		requestStartTime = Date.now() + ServerFixedTime;
 	}
 	headers['XH-Httpproxy-ContentTime'] = requestStartTime;
 
