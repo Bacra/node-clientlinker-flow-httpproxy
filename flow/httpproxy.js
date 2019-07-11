@@ -139,16 +139,15 @@ function getRequestParams(runtime, body)
 {
 	var client = runtime.client;
 	var options = client.options;
-
-	var headers = options.httpproxyHeaders || {};
-	headers['Content-Type'] = 'application/json';
-
 	var runOptions	= runtime.options || {};
 	var timeout		= runOptions.timeout || options.httpproxyTimeout || 10000;
 	var proxy		= runOptions.httpproxyProxy
 			|| options.httpproxyProxy
 			|| process.env.clientlinker_http_proxy
 			|| process.env.http_proxy;
+
+	var headers = _.extend({}, options.httpproxyHeaders, runOptions.httpproxyHeaders);
+	headers['Content-Type'] = 'application/json';
 
 	var postBody = {
 		data: json.stringify(body),
