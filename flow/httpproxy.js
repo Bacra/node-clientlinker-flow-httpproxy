@@ -150,9 +150,11 @@ function getRequestParams(runtime, body)
 	headers['Content-Type'] = 'application/json';
 
 	var postBody = {
+		action: runtime.action,
 		data: json.stringify(body),
 		CONST_KEY: json.CONST_KEY,
-		action: runtime.action,
+		// post 是没有缓存的，但还是加一个随机数，更安全一些
+		random: Math.random() * 100000 | 0,
 	};
 
 	var bodystr = JSON.stringify(postBody, null, '\t');
