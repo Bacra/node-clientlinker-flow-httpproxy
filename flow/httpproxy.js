@@ -150,22 +150,29 @@ function getRequestParams(runtime, body)
 			|| process.env.clientlinker_http_proxy
 			|| process.env.http_proxy;
 
-	var requestStartTime = Date.now() + ServerFixedTime;
 	var postBody = {
 		data: json.stringify(body),
 		CONST_KEY: json.CONST_KEY,
 		action: runtime.action,
-		time: requestStartTime,
 	};
 
 	var bodystr = JSON.stringify(postBody, null, '\t');
 
 	// check key
+	var requestStartTime;
 	if (options.httpproxyKey)
 	{
-		var key = signature.sha_content(bodystr, requestStartTime, options.httpproxyKey);
+		var hashContent = signature.get_sha_content(bodystr);
+
+		requestStartTime = Date.now() + ServerFixedTime;
+		var key = signature.sha_content(hashContent, requestStartTime, options.httpproxyKey);
 		headers['XH-Httpproxy-Key'] = key;
 	}
+	else
+	{
+		requestStartTime = Date.now() + ServerFixedTime;
+	}
+	headers['XH-Httpproxy-ContentTime'] = requestStartTime;
 
 	return {
 		url		: options.httpproxy,
