@@ -12,6 +12,21 @@ var initTestSvrLinker	= utilsTestHttpproxy.initTestSvrLinker;
 
 describe('#httpproxy', function()
 {
+	describe('#utils', function()
+	{
+		it('#appendUrl', function()
+		{
+			expect(httpproxy.appendUrl_('http://127.0.0.1/', 'a=1'))
+				.to.be('http://127.0.0.1/?a=1');
+			expect(httpproxy.appendUrl_('http://127.0.0.1/?', 'a=1'))
+				.to.be('http://127.0.0.1/?a=1');
+			expect(httpproxy.appendUrl_('http://127.0.0.1/?b=1', 'a=1'))
+				.to.be('http://127.0.0.1/?b=1&a=1');
+			expect(httpproxy.appendUrl_('http://127.0.0.1/?b=1&', 'a=1'))
+				.to.be('http://127.0.0.1/?b=1&a=1');
+		});
+	});
+
 	describe('#err statusCode', function()
 	{
 		describe('#5xx', function()

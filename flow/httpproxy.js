@@ -134,6 +134,24 @@ function getRequestBody(runtime)
 	return body;
 }
 
+
+var urlCache = {};
+exports.appendUrl_ = appendUrl;
+function appendUrl(url, query)
+{
+	var rootUrl = urlCache[url];
+
+	if (!rootUrl)
+	{
+		var lastChar = url.charAt(url.length-1);
+		var splitChar = lastChar == '?' || lastChar == '&'
+				? '' : (url.indexOf('?') != -1 ? '&' : '?');
+		rootUrl = urlCache[url] = url + splitChar;
+	}
+
+	return  rootUrl + query;
+}
+
 exports.getRequestParams_ = getRequestParams;
 function getRequestParams(runtime, body)
 {
@@ -173,8 +191,12 @@ function getRequestParams(runtime, body)
 	}
 	headers['XH-Httpproxy-ContentTime'] = requestStartTime;
 
+	// URL 上的action只是为了方便查看抓包请求
+	// 实际以body.action为准
+	var url = appendUrl(options.httpproxy, 'action='+runtime.action);
+
 	return {
-		url		: options.httpproxy,
+		url		: url,
 		body	: bodystr,
 		headers	: headers,
 		timeout	: timeout,
