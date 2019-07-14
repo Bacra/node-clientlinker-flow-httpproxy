@@ -175,7 +175,8 @@ function getRequestParams(runtime, body)
 		random: Math.random() * 100000 | 0,
 	};
 
-	var bodystr = JSON.stringify(postBody, null, '\t');
+	var bodystr = JSON.stringify(postBody, null, '\t')
+		.replace(/\n/g, '\r\n');
 
 	var requestStartTime = Date.now() + ServerFixedTime;
 	// 增加对内容的签名
