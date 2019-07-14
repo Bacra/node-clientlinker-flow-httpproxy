@@ -164,6 +164,10 @@ function getRequestParams(runtime, body)
 			|| process.env.clientlinker_http_proxy
 			|| process.env.http_proxy;
 
+	if (runOptions.httpproxyProxy === false || (!runOptions.httpproxyProxy && options.httpproxyProxy === false)) {
+		proxy = false;
+	}
+
 	var headers = _.extend({}, options.httpproxyHeaders, runOptions.httpproxyHeaders);
 	headers['Content-Type'] = 'application/json';
 
