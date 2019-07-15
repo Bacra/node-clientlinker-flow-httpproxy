@@ -264,24 +264,49 @@ describe('#httpproxy', function()
 							expect(data.body).to.contain('route catch:');
 						});
 				});
+
+				it('#check signa', function()
+				{
+					var linker = initLinker(
+					{
+						flows: ['custom'],
+						defaults:
+						{
+							httpproxyKey: httpproxyKey
+						},
+						customFlows:
+						{
+							custom: function custom(runtime, callback)
+							{
+								var body = httpproxy.getRequestBody_(runtime);
+								var opts = httpproxy.getRequestParams_(runtime, body);
+								opts.body = opts.body.replace(/\t/g, '  ');
+
+								request.post(opts, function(err, response, body)
+								{
+									callback.resolve(
+										{
+											err: err,
+											response: response,
+											body: body
+										});
+								});
+							}
+						}
+					});
+
+					return linker.run('client_its.method')
+						.then(function(data)
+						{
+							expect(data.err).to.be(null);
+							expect(data.response.statusCode).to.be(403);
+							expect(data.body).to.contain('route catch:');
+						});
+				});
+
+
 			});
 
-			// it('#err403', function()
-			// {
-			// 	var linker = initLinker(
-			// 		{
-			// 			defaults: {
-			// 				httpproxyKey: 'xxx'
-			// 			}
-			// 		});
-			//
-			// 	return linker.run('client_its.method')
-			// 		.then(function(){expect().fail()},
-			// 			function(err)
-			// 			{
-			// 				expect(err).to.be('respone!200,403');
-			// 			});
-			// });
 		});
 
 
