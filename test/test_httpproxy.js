@@ -214,6 +214,56 @@ describe('#httpproxy', function()
 				itKey('err key', 403, 'dddd');
 				itKey('no key', 403, null);
 				itKey('direct', 403, httpproxyKey);
+
+				it('#repeat', function()
+				{
+					var firstOtps = null;
+					var linker = initLinker(
+					{
+						flows: ['custom'],
+						defaults:
+						{
+							httpproxyKey: httpproxyKey
+						},
+						customFlows:
+						{
+							custom: function custom(runtime, callback)
+							{
+								if (!firstOtps) {
+									var body = httpproxy.getRequestBody_(runtime);
+									firstOtps = httpproxy.getRequestParams_(runtime, body);
+								}
+
+								request.post(firstOtps, function(err, response, body)
+								{
+									callback.resolve(
+										{
+											err: err,
+											response: response,
+											body: body
+										});
+								});
+							}
+						}
+					});
+
+					return linker.run('client_its.method')
+						.then(function(data)
+						{
+							expect(data.err).to.be(null);
+							expect(data.response.statusCode).to.be(200);
+							expect(data.body).to.contain('route catch:');
+						})
+						.then(function() {
+							return linker.run('client_its.method');
+						})
+						.then(function(data)
+						{
+							expect(data.err).to.be(null);
+							expect(data.response.statusCode).to.be(403);
+							expect(data.body).to.contain('route catch:');
+						});
+				});
 			});
 
 			// it('#err403', function()
