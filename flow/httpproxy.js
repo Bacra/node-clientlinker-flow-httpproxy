@@ -8,8 +8,6 @@ var request		= require('request');
 var signature	= require('../lib/signature');
 var json		= require('../lib/json');
 
-var ServerFixedTime = 0;
-
 exports = module.exports = httpproxy;
 
 function httpproxy(runtime, callback)
@@ -33,13 +31,9 @@ function httpproxy(runtime, callback)
 			var response = result.response;
 
 			var clientResponseTime = +response.responseStartTime;
-			var serverResponseTime = +response.headers['xh-httpproxy-requesttime'];
-			debug('clientResponseTime: %s serverResponseTime: %s', clientResponseTime, serverResponseTime);
-			if (clientResponseTime && serverResponseTime)
-			{
-				ServerFixedTime = serverResponseTime - clientResponseTime;
-				debug('ServerFixedTime: %sms', ServerFixedTime);
-			}
+			var serverResponseTime = +response.headers['xh-httpproxy-responsetime'];
+			debug('clientResponseTime: %s serverResponseTime: %s, remain: %sms',
+				clientResponseTime, serverResponseTime, serverResponseTime - clientResponseTime);
 
 			try {
 				var data = JSON.parse(result.body);
@@ -182,7 +176,7 @@ function getRequestParams(runtime, body)
 	var bodystr = JSON.stringify(postBody, null, '\t')
 		.replace(/\n/g, '\r\n');
 
-	var requestStartTime = Date.now() + ServerFixedTime;
+	var requestStartTime = Date.now();
 	// 增加对内容的签名
 	// 内容可能会超级大，所以分批计算签名
 	// 并且requestStartTime要尽量精确
@@ -190,7 +184,7 @@ function getRequestParams(runtime, body)
 	{
 		var hashContent = signature.get_sha_content(bodystr);
 
-		requestStartTime = Date.now() + ServerFixedTime;
+		requestStartTime = Date.now();
 		var key = signature.sha_content(hashContent, requestStartTime, options.httpproxyKey);
 		headers['XH-Httpproxy-Key'] = key;
 	}
