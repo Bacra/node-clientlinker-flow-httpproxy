@@ -183,6 +183,7 @@ function getRequestParams(runtime, body)
 	if (options.httpproxyKey)
 	{
 		var hashContent = signature.get_sha_content(bodystr);
+		headers['XH-Httpproxy-DebugMd5'] = signature.md5(hashContent);
 
 		requestStartTime = Date.now();
 		var key = signature.sha_content(hashContent, requestStartTime, options.httpproxyKey);
