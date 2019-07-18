@@ -7,8 +7,11 @@ describe('#json', function()
 {
 	it('#stringify', function()
 	{
+		var err = new Error('err message2');
+		err.errCode = -1;
 		var data = {
 			result: new Error('err message'),
+			result2: err,
 			data: {
 				string: "string",
 				number: 123,
@@ -19,7 +22,11 @@ describe('#json', function()
 		var newData = json.stringify(data);
 		expect(newData.result).not.to.be.a(Error);
 		expect(newData.result.type).to.be( json.CONST_VARS.ERROR_KEY);
-		expect(newData.result.data).to.be('err message');
+		expect(newData.result.data.message).to.be('err message');
+
+		expect(newData.result2.type).to.be( json.CONST_VARS.ERROR_KEY);
+		expect(newData.result2.data.message).to.be('err message2');
+		expect(newData.result2.data.errCode).to.be(-1);
 
 		expect(newData.data.buffer).to.not.be.a(Buffer);
 		expect(newData.data.buffer.type).to.be(json.CONST_VARS.BUFFER_KEY);
@@ -34,7 +41,11 @@ describe('#json', function()
 		var data = {
 			"result": {
 				"type": "1454824224156_err",
-				"data":  "err message"
+				"data": { message: "err message" }
+			},
+			"result2": {
+				"type": "1454824224156_err",
+				"data": { message: "err message2", errCode: -1 }
 			},
 			"data": {
 				"string": "string",
@@ -55,6 +66,10 @@ describe('#json', function()
 		expect(newData.data).to.be.an('object');
 		expect(newData.result).to.be.an(Error);
 		expect(newData.result.message).to.be('err message');
+
+		expect(newData.result2).to.be.an(Error);
+		expect(newData.result2.message).to.be('err message2');
+		expect(newData.result2.errCode).to.be(-1);
 
 		expect(newData.data.buffer).to.be.a(Buffer);
 		expect(newData.data.buffer.toString()).to.be('buffer');

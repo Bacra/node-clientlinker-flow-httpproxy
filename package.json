@@ -1,6 +1,6 @@
 {
   "name": "clientlinker-flow-httpproxy",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "Httpproxy flow for clientlinker",
   "main": "index.js",
   "scripts": {
