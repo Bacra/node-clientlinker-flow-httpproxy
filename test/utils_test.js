@@ -19,38 +19,22 @@ function initLinker(options)
 	options || (options = {});
 	options.flows || (options.flows = ['httpproxy']);
 
+	var httpproxyQuery = options.httpproxyQuery ? '?' + options.httpproxyQuery : '';
 	(options.defaults || (options.defaults = {})).httpproxy
-			= 'http://127.0.0.1:'+exports.PORT+'/route_proxy';
+			= 'http://127.0.0.1:'+exports.PORT+'/route_proxy' + httpproxyQuery;
 
 	options.clients || (options.clients = {});
 	options.clients.client_its =
 	{
-		confighandler: confighandlerTest.methods
+		confighandler: confighandlerTest.methods,
 	};
 	options.clients.client_svr_noflows = {};
 	options.clients.client_svr_not_exists = {};
 
 	var linker = clientlinker(options);
+	linker.flow('httpproxy', httpproxyFlow);
+	linker.flow('confighandler', confighandlerFlow);
 
-	options.flows.forEach(function(name)
-	{
-		switch(name)
-		{
-			case 'httpproxy':
-				linker.flow('httpproxy', httpproxyFlow);
-				break;
-
-			case 'confighandler':
-				linker.flow('confighandler', confighandlerFlow);
-				break;
-
-			case 'custom':
-				break;
-
-			default:
-				debug('undefined flow: %s', name);
-		}
-	});
 
 	return linker;
 }
@@ -60,20 +44,28 @@ exports.initSvrLinker = initSvrLinker;
 function initSvrLinker(options)
 {
 	options || (options = {});
-	options.flows = ['custom', 'confighandler', 'httpproxy'];
+	options.flows || (options.flows = ['custom', 'confighandler', 'httpproxy']);
+	(options.defaults || (options.defaults = {})).httpproxy
+			= 'http://127.0.0.1:'+exports.PORT+'/route_proxy';
+
 	options.clients || (options.clients = {});
+	options.clients.client_svr_not_exists = null;
 	options.clients.client_svr_noflows = {flows: []};
-	options.customFlows =
+	options.clients.client_its =
 	{
-		custom: function(runtime, callback)
-		{
-			expect(runtime.env.source).to.be('httpproxy');
-			return callback.next();
-		}
+		confighandler: confighandlerTest.methods
+	};
+	options.customFlows || (options.customFlows = {});
+	options.customFlows.custom = function(runtime, callback)
+	{
+		expect(runtime.env.source).to.be('httpproxy');
+		return callback.next();
 	};
 
 	var svr;
-	var linker = initLinker(options);
+	var linker = clientlinker(options);
+	linker.flow('httpproxy', httpproxyFlow);
+	linker.flow('confighandler', confighandlerFlow);
 
 	return {
 		linker: linker,

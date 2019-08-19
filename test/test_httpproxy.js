@@ -314,15 +314,15 @@ describe('#httpproxy', function()
 		{
 			function descKey(svrLevel)
 			{
-				function itKey(level)
+				function itClientKey(clientLevel)
 				{
-					it('#'+level, function()
+					it('#client run level:'+clientLevel, function()
 					{
 						var linker = initLinker(
 							{
 								defaults:
 								{
-									httpproxyMaxLevel: level
+									httpproxyMaxLevel: clientLevel
 								}
 							});
 						var retPromise = linker.run('client_its.method_no_exists');
@@ -335,7 +335,7 @@ describe('#httpproxy', function()
 									expect(err.CLIENTLINKER_TYPE).to.be('CLIENT FLOW OUT');
 									expect(runtime.env.source).to.be('run');
 
-									if (level === 0)
+									if (clientLevel === 0)
 									{
 										expect(runtime.env.httpproxyLevel)
 											.to.be(undefined);
@@ -364,6 +364,7 @@ describe('#httpproxy', function()
 				{
 					initTestSvrLinker(
 					{
+						// flows: ['httpproxy'],
 						defaults:
 						{
 							httpproxyMaxLevel: svrLevel
@@ -375,14 +376,11 @@ describe('#httpproxy', function()
 						confighandlerTest.run(initLinker({}));
 					});
 
-					describe('#run level', function()
-					{
-						itKey(1);
-						itKey(5);
-						itKey();
-						itKey(0);
-						itKey(-1);
-					});
+					itClientKey(1);
+					itClientKey(5);
+					itClientKey();
+					itClientKey(0);
+					itClientKey(-1);
 				});
 			}
 
@@ -392,6 +390,94 @@ describe('#httpproxy', function()
 			descKey(0);
 			descKey(-1);
 		});
+	});
+
+	describe('#env', function()
+	{
+		describe('#httpproxyHeader', function()
+		{
+			initTestSvrLinker({
+				clients:
+				{
+					client_svr_customflow:
+					{
+						flows: ['it_customflow'],
+					}
+				},
+				customFlows:
+				{
+					it_customflow: function custom(runtime, callback)
+					{
+						callback.resolve({
+							httpproxyHeaders: runtime.env.httpproxyHeaders,
+						});
+					},
+				}
+			});
+
+			it('#httpproxyHeader', function()
+			{
+				var linker = initLinker(
+				{
+					defaults: {
+						httpproxyHeaders: {
+							httpproxyCustomHeader: 'httpproxyCustomHeader'
+						},
+					},
+					clients: {
+						client_svr_customflow: {},
+					}
+				});
+
+				return linker.run('client_svr_customflow.method')
+					.then(function(data)
+					{
+						expect(data.httpproxyHeaders.httpproxycustomheader).to.be('httpproxyCustomHeader');
+					});
+			});
+
+		});
+
+		describe('#httpproxyQuery', function()
+		{
+			initTestSvrLinker({
+				clients:
+				{
+					client_svr_customflow:
+					{
+						flows: ['it_customflow'],
+					}
+				},
+				customFlows:
+				{
+					it_customflow: function custom(runtime, callback)
+					{
+						callback.resolve({
+							httpproxyQuery: runtime.env.httpproxyQuery,
+						});
+					},
+				}
+			});
+
+			it('#httpproxyQuery', function()
+			{
+				var linker = initLinker(
+				{
+					httpproxyQuery: 'custom_query=xxxx',
+					clients: {
+						client_svr_customflow: {},
+					}
+				});
+
+				return linker.run('client_svr_customflow.method')
+					.then(function(data)
+					{
+						expect(data.httpproxyQuery.custom_query).to.be('xxxx');
+					});
+			});
+
+		});
+
 	});
 
 });
