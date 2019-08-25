@@ -19,6 +19,7 @@ function httpproxy(runtime, callback)
 
 	return new Promise(function(resolve, reject)
 		{
+			runtime.env.httpproxyRunParams = params;
 			request.post(params, function(err, response, body)
 			{
 				if (err)
@@ -48,7 +49,11 @@ function httpproxy(runtime, callback)
 
 			if (data && data.env)
 			{
-				_.extend(runtime.env, data.env, {source: runtime.env.source});
+				var keepEnv = {
+					source: runtime.env.source,
+					httpproxyRunParams: runtime.env.httpproxyRunParams,
+				};
+				_.extend(runtime.env, data.env, keepEnv);
 			}
 
 			// 预留接口，在客户端显示server端日志
