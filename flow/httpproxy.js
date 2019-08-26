@@ -19,7 +19,7 @@ function httpproxy(runtime, callback)
 
 	return new Promise(function(resolve, reject)
 		{
-			runtime.env.httpproxyRunParams = params;
+			runtime.httpproxyRunParams = params;
 			request.post(params, function(err, response, body)
 			{
 				if (err)
@@ -51,7 +51,6 @@ function httpproxy(runtime, callback)
 			{
 				var keepEnv = {
 					source: runtime.env.source,
-					httpproxyRunParams: runtime.env.httpproxyRunParams,
 				};
 				_.extend(runtime.env, data.env, keepEnv);
 			}
